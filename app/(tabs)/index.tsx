@@ -1,3 +1,5 @@
+import AnimeCard from "@/components/ui/anime-card";
+import CarouselCard from "@/components/ui/carousel-card";
 import { useTopAnime, useTopManga } from "@/hooks/useJikan";
 import { FlashList } from "@shopify/flash-list";
 import {
@@ -7,80 +9,61 @@ import {
   View,
   Text,
   FlatList,
+  Dimensions,
+  ScrollView,
 } from "react-native";
+import Carousel from "react-native-reanimated-carousel";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const { data } = useTopAnime();
   const { data: mangaData } = useTopManga();
-  // console.log(data.data);
+  const width = Dimensions.get("window").width;
+
   return (
-    <SafeAreaView className="bg-black h-screen">
-      <View className="flex-col mb-2">
-        <View>
-          <Text className="text-2xl text-white font-semibold">Top Anime</Text>
+    <SafeAreaView className="bg-black min-h-screen">
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
+        <View className="flex-1">
+          <Carousel
+            loop
+            width={width}
+            height={200}
+            autoPlay={true}
+            data={[...new Array(6).keys()]}
+            scrollAnimationDuration={1000}
+            onSnapToItem={(index) => console.log("current index:", index)}
+            renderItem={({ index }) => (
+              <CarouselCard item={data?.data[index]} />
+            )}
+          />
         </View>
-        <FlatList
-          data={data?.data}
-          renderItem={({ item }) => (
-            <View className="bg-gray-100 p-2 mx-1 rounded-lg overflow-hidden w-36">
-              <Image
-                className="w-32 h-48"
-                source={{ uri: item.images.jpg.large_image_url }}
-              />
-              <View className="flex-row justify-between">
-                <Text>{item.type}</Text>
-                <Text>{item.score}</Text>
-              </View>
-              <Text className="line-clamp-1">{item.title_english}</Text>
-            </View>
-          )}
-          keyExtractor={(item) => item.mal_id.toString()}
-          horizontal
-        />
-      </View>
-      <View className="flex-col">
-        <View>
-          <Text className="text-2xl text-white font-semibold">Top Anime</Text>
+        <View className="flex-col mb-2">
+          <View>
+            <Text className="text-2xl text-white font-semibold">Top Anime</Text>
+          </View>
+          <FlatList
+            data={data?.data}
+            renderItem={({ item }) => <AnimeCard item={item} />}
+            keyExtractor={(item) => item.mal_id.toString()}
+            horizontal
+          />
         </View>
-        <FlatList
-          data={mangaData?.data}
-          renderItem={({ item }) => (
-            <View className="bg-gray-100 p-2 mx-1 rounded-lg overflow-hidden w-36">
-              <Image
-                className="w-32 h-48"
-                source={{ uri: item.images.jpg.large_image_url }}
-              />
-              <View className="flex-row justify-between">
-                <Text>{item.type}</Text>
-                <Text>{item.score}</Text>
-              </View>
-              <Text className="line-clamp-1">{item.title_english}</Text>
-            </View>
-          )}
-          keyExtractor={(item) => item.mal_id.toString()}
-          horizontal
-        />
-      </View>
+        <View className="flex-col">
+          <View>
+            <Text className="text-2xl text-white font-semibold">Top Manga</Text>
+          </View>
+          <FlatList
+            data={mangaData?.data}
+            renderItem={({ item }) => <AnimeCard item={item} />}
+            keyExtractor={(item) => item.mal_id.toString()}
+            horizontal
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
-  },
-});
