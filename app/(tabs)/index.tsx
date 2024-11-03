@@ -1,6 +1,6 @@
 import AnimeCard from "@/components/ui/anime-card";
 import CarouselCard from "@/components/ui/carousel-card";
-import { useTopAnime, useTopManga } from "@/hooks/useJikan";
+import { useSeasonNow, useTopAnime, useTopManga } from "@/hooks/useJikan";
 import { FlashList } from "@shopify/flash-list";
 import {
   Image,
@@ -18,10 +18,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function HomeScreen() {
   const { data } = useTopAnime();
   const { data: mangaData } = useTopManga();
+  const { data: seasonNow } = useSeasonNow();
   const width = Dimensions.get("window").width;
 
   return (
-    <SafeAreaView className="bg-black min-h-screen">
+    <SafeAreaView className="bg-black h-full">
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -31,14 +32,12 @@ export default function HomeScreen() {
           <Carousel
             loop
             width={width}
-            height={200}
+            height={500}
             autoPlay={true}
-            data={[...new Array(6).keys()]}
-            scrollAnimationDuration={1000}
-            onSnapToItem={(index) => console.log("current index:", index)}
-            renderItem={({ index }) => (
-              <CarouselCard item={data?.data[index]} />
-            )}
+            data={data?.data ?? []}
+            autoPlayInterval={5000}
+            scrollAnimationDuration={2000}
+            renderItem={({ item }) => <CarouselCard item={item} />}
           />
         </View>
         <View className="flex-col mb-2">
@@ -52,12 +51,23 @@ export default function HomeScreen() {
             horizontal
           />
         </View>
-        <View className="flex-col">
+        {/* <View className="flex-col">
           <View>
             <Text className="text-2xl text-white font-semibold">Top Manga</Text>
           </View>
           <FlatList
             data={mangaData?.data}
+            renderItem={({ item }) => <AnimeCard item={item} />}
+            keyExtractor={(item) => item.mal_id.toString()}
+            horizontal
+          />
+        </View> */}
+        <View className="flex-col">
+          <View>
+            <Text className="text-2xl text-white font-semibold">Ongoing</Text>
+          </View>
+          <FlatList
+            data={seasonNow?.data}
             renderItem={({ item }) => <AnimeCard item={item} />}
             keyExtractor={(item) => item.mal_id.toString()}
             horizontal

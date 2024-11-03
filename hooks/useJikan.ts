@@ -1,40 +1,13 @@
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-
-interface AnimeResponse {
-  data: Array<{
-    mal_id: number;
-    title: string;
-    images: {
-      jpg: { image_url: string };
-    };
-    synopsis: string;
-    score: number;
-  }>;
-  pagination: {
-    has_next_page: boolean;
-    current_page: number;
-  };
-}
-
-interface MangaResponse {
-  data: Array<{
-    mal_id: number;
-    title: string;
-    images: {
-      jpg: { image_url: string };
-    };
-    synopsis: string;
-    score: number;
-  }>;
-  pagination: {
-    has_next_page: boolean;
-    current_page: number;
-  };
-}
+import { GetTopMangaResponse } from "@/types/manga";
+import { GetTopAnimeResponse } from "@/types/anime";
+import { GetAnimeSearchResponse } from "@/types/anime-search";
+import { GetAnimeFullByIdResponse } from "@/types/anime-id";
+import { GetSeasonNowResponse } from "@/types/season-now-anime";
 
 // API Functions
-const fetchTopAnime = async (page = 1) => {
+const fetchTopAnime = async (page = 1): Promise<GetTopAnimeResponse> => {
   try {
     const { data } = await axios.get(
       `https://api.jikan.moe/v4/top/anime?page=${page}`
@@ -44,8 +17,16 @@ const fetchTopAnime = async (page = 1) => {
     throw new Error("Failed to fetch top anime");
   }
 };
+const fetchSeasonNow = async (): Promise<GetSeasonNowResponse> => {
+  try {
+    const { data } = await axios.get(`https://api.jikan.moe/v4/seasons/now`);
+    return data;
+  } catch (error) {
+    throw new Error("Failed to fetch top anime");
+  }
+};
 
-const fetchTopManga = async (page = 1) => {
+const fetchTopManga = async (page = 1): Promise<GetTopMangaResponse> => {
   try {
     const { data } = await axios.get(
       `https://api.jikan.moe/v4/top/manga?page=${page}`
@@ -59,7 +40,7 @@ const fetchTopManga = async (page = 1) => {
 const fetchAnimeSearch = async (
   query: string,
   page = 1
-): Promise<AnimeResponse> => {
+): Promise<GetAnimeSearchResponse> => {
   try {
     const { data } = await axios.get(
       `https://api.jikan.moe/v4/anime?q=${query}&page=${page}`
@@ -72,7 +53,7 @@ const fetchAnimeSearch = async (
 
 const fetchAnimeFullById = async (
   id: number
-): Promise<{ data: AnimeResponse["data"][0] }> => {
+): Promise<GetAnimeFullByIdResponse> => {
   try {
     const { data } = await axios.get(
       `https://api.jikan.moe/v4/anime/${id}/full`
@@ -88,6 +69,12 @@ export const useTopAnime = (page = 1) => {
   return useQuery({
     queryKey: ["topAnime", page],
     queryFn: () => fetchTopAnime(page),
+  });
+};
+export const useSeasonNow = () => {
+  return useQuery({
+    queryKey: ["seasonNow"],
+    queryFn: () => fetchSeasonNow(),
   });
 };
 
