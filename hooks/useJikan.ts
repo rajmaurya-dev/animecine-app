@@ -5,96 +5,95 @@ import { GetTopAnimeResponse } from "@/types/anime";
 import { GetAnimeSearchResponse } from "@/types/anime-search";
 import { GetAnimeFullByIdResponse } from "@/types/anime-id";
 import { GetSeasonNowResponse } from "@/types/season-now-anime";
+import { GetAnimeCharactersResponse } from "@/types/anime-characters";
+import { GetAnimeStreamingResponse } from "@/types/anime-streaming";
+import { GetAnimeRecommendationResponse } from "@/types/anime-recommendation";
+import { GetAnimeReviewsResponse } from "@/types/anime-reviews";
 
-// API Functions
-const fetchTopAnime = async (page = 1): Promise<GetTopAnimeResponse> => {
-  try {
-    const { data } = await axios.get(
-      `https://api.jikan.moe/v4/top/anime?page=${page}`
-    );
-    return data;
-  } catch (error) {
-    throw new Error("Failed to fetch top anime");
-  }
-};
-const fetchSeasonNow = async (): Promise<GetSeasonNowResponse> => {
-  try {
-    const { data } = await axios.get(`https://api.jikan.moe/v4/seasons/now`);
-    return data;
-  } catch (error) {
-    throw new Error("Failed to fetch top anime");
-  }
+const api = axios.create({
+  baseURL: "https://api.jikan.moe/v4",
+  timeout: 5000,
+});
+
+const handleError = (error: unknown, endpoint: string) => {
+  const message = error instanceof Error ? error.message : "An error occurred";
+  throw new Error(`Failed to fetch ${endpoint}: ${message}`);
 };
 
-const fetchTopManga = async (page = 1): Promise<GetTopMangaResponse> => {
-  try {
-    const { data } = await axios.get(
-      `https://api.jikan.moe/v4/top/manga?page=${page}`
-    );
-    return data;
-  } catch (error) {
-    throw new Error("Failed to fetch top manga");
-  }
-};
-
-const fetchAnimeSearch = async (
-  query: string,
-  page = 1
-): Promise<GetAnimeSearchResponse> => {
-  try {
-    const { data } = await axios.get(
-      `https://api.jikan.moe/v4/anime?q=${query}&page=${page}`
-    );
-    return data;
-  } catch (error) {
-    throw new Error("Failed to search anime");
-  }
-};
-
-const fetchAnimeFullById = async (
-  id: number
-): Promise<GetAnimeFullByIdResponse> => {
-  try {
-    const { data } = await axios.get(
-      `https://api.jikan.moe/v4/anime/${id}/full`
-    );
-    return data;
-  } catch (error) {
-    throw new Error("Failed to fetch anime details");
-  }
-};
-
-// Hooks
-export const useTopAnime = (page = 1) => {
-  return useQuery({
-    queryKey: ["topAnime", page],
-    queryFn: () => fetchTopAnime(page),
+const replaceUrlParams = (endpoint: string, params: Record<string, any>) => {
+  let url = endpoint;
+  Object.entries(params).forEach(([key, value]) => {
+    url = url.replace(`:${key}`, value?.toString() ?? "");
   });
-};
-export const useSeasonNow = () => {
-  return useQuery({
-    queryKey: ["seasonNow"],
-    queryFn: () => fetchSeasonNow(),
-  });
+  return url;
 };
 
-export const useTopManga = (page = 1) => {
-  return useQuery({
-    queryKey: ["topManga", page],
-    queryFn: () => fetchTopManga(page),
-  });
+const createApiCall = <T>(endpoint: string) => {
+  return async (params: Record<string, any> = {}): Promise<T> => {
+    try {
+      const urlParams = { ...params };
+      const queryParams = { ...params };
+
+      delete queryParams.id;
+
+      const url = replaceUrlParams(endpoint, urlParams);
+      const { data } = await api.get(url, { params: queryParams });
+      return data;
+    } catch (error) {
+      handleError(error, endpoint);
+      throw error;
+    }
+  };
 };
 
-export const useAnimeSearch = (query: string, page = 1) => {
-  return useQuery({
-    queryKey: ["animeSearch", query, page],
-    queryFn: () => fetchAnimeSearch(query, page),
-  });
+const apiCalls = {
+  topAnime: createApiCall<GetTopAnimeResponse>("/top/anime"),
+  topManga: createApiCall<GetTopMangaResponse>("/top/manga"),
+  seasonNow: createApiCall<GetSeasonNowResponse>("/seasons/now"),
+  animeCharacters: createApiCall<GetAnimeCharactersResponse>(
+    "/anime/:id/characters"
+  ),
+  animeRecommendations: createApiCall<GetAnimeRecommendationResponse>(
+    "/anime/:id/recommendations"
+  ),
+  animeReviews: createApiCall<GetAnimeReviewsResponse>("/anime/:id/reviews"),
+  animeStreaming: createApiCall<GetAnimeStreamingResponse>(
+    "/anime/:id/streaming"
+  ),
+  animeSearch: createApiCall<GetAnimeSearchResponse>("/anime"),
+  animeFullById: createApiCall<GetAnimeFullByIdResponse>("/anime/:id/full"),
 };
 
-export const useAnimeFullById = (id: number) => {
-  return useQuery({
-    queryKey: ["animeFullById", id],
-    queryFn: () => fetchAnimeFullById(id),
-  });
+const createQueryHook = <T>(
+  key: string,
+  apiFn: (params: Record<string, any>) => Promise<T>
+) => {
+  return (params: Record<string, any> = {}) =>
+    useQuery({
+      queryKey: [key, params],
+      queryFn: () => apiFn(params),
+    });
 };
+
+export const useTopAnime = createQueryHook("topAnime", apiCalls.topAnime);
+export const useTopManga = createQueryHook("topManga", apiCalls.topManga);
+export const useSeasonNow = createQueryHook("seasonNow", apiCalls.seasonNow);
+export const useAnimeCharacters = createQueryHook("animeCharacters", (params) =>
+  apiCalls.animeCharacters({ ...params, id: params.id })
+);
+export const useAnimeRecommendation = createQueryHook(
+  "animeRecommendation",
+  (params) => apiCalls.animeRecommendations({ ...params, id: params.id })
+);
+export const useAnimeReviews = createQueryHook("animeReviews", (params) =>
+  apiCalls.animeReviews({ ...params, id: params.id })
+);
+export const useAnimeStreaming = createQueryHook("animeStreaming", (params) =>
+  apiCalls.animeStreaming({ ...params, id: params.id })
+);
+export const useAnimeSearch = createQueryHook("animeSearch", (params) =>
+  apiCalls.animeSearch({ q: params.searchQuery })
+);
+export const useAnimeFullById = createQueryHook("animeFullById", (params) =>
+  apiCalls.animeFullById({ ...params, id: params.id })
+);

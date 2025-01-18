@@ -20,10 +20,15 @@ import { Anime } from "@/types/anime";
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
-  const { data, isLoading } = useAnimeSearch(searchQuery);
-  console.log(data?.data.map((item) => item.title));
+  const { data, isLoading } = useAnimeSearch({
+    searchQuery,
+    enabled: searchQuery.length > 2, // Only search when query is 3+ chars
+  });
+  // console.log(data?.data.map((item) => item.title));
+  console.log(searchQuery);
   const debouncedSearch = useCallback(
     debounce((text: string) => {
+      console.log(text, "dbt");
       setSearchQuery(text);
     }, 500),
     []
@@ -97,13 +102,42 @@ export default function SearchScreen() {
           showsVerticalScrollIndicator={false}
         />
       ) : (
-        <View className="flex-1 items-center justify-center">
-          <Ionicons
-            name="search-outline"
-            size={48}
-            color="rgba(255,255,255,0.3)"
-          />
-          <Text className="text-white/30 mt-4">Start typing to search</Text>
+        <View className="h-screen">
+          <View className="flex justify-center flex-row flex-wrap w-full">
+            {[
+              "Naruto",
+              "One Piece",
+              "Attack on Titan",
+              "My Hero Academia",
+              "Food wars",
+            ].map((term) => (
+              <Pressable
+                key={term}
+                onPress={() => debouncedSearch(term)}
+                className={`px-4 py-2 rounded-full m-1 ${
+                  term === "Naruto"
+                    ? "bg-red-500/30"
+                    : term === "One Piece"
+                    ? "bg-blue-500/30"
+                    : term === "Attack on Titan"
+                    ? "bg-yellow-500/30"
+                    : term === "My Hero Academia"
+                    ? "bg-green-500/30"
+                    : "bg-purple-500/30"
+                }`}
+              >
+                <Text className="text-white">{term}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <View className="mt-36 items-center justify-center">
+            <Ionicons
+              name="search-outline"
+              size={48}
+              color="rgba(255,255,255,0.3)"
+            />
+            <Text className="text-white/30 mt-4">Start typing to search</Text>
+          </View>
         </View>
       )}
     </View>

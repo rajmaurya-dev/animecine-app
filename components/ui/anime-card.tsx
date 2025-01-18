@@ -12,8 +12,7 @@ interface CardProps {
         large_image_url: string;
       };
     };
-    type: string;
-    score: number;
+
     title_english: string;
     mal_id: number;
   };
@@ -28,15 +27,15 @@ const AnimeCard: React.FC<CardProps> = ({ item }) => {
     });
   };
 
-  console.log(item);
+  // console.log(item);
   return (
     <Pressable
-      className=" p-2 mx-1 rounded-lg overflow-hidden w-36"
+      className=" p-2 mx-1 rounded-lg overflow-hidden w-[48vw]"
       onPress={handlePress}
     >
       <Animated.Image
         sharedTransitionTag={item.mal_id.toString()}
-        className="w-32 h-48 rounded-lg"
+        className="w-[48vw] h-72 rounded-lg"
         source={{ uri: item.images.jpg.large_image_url }}
       />
       <View className="flex-row justify-between">

@@ -12,17 +12,17 @@ export default function RootLayout() {
     >
       <Stack.Screen
         name="[id]"
-        options={{
-          headerShown: true,
-          headerTransparent: true,
-          headerTintColor: "#fff",
-          headerTitle: "",
-          headerBackVisible: true,
-          headerStyle: {
-            backgroundColor: "transparent",
-          },
-          headerShadowVisible: false,
-        }}
+        // options={{
+        //   headerShown: true,
+        //   headerTransparent: true,
+        //   headerTintColor: "#fff",
+        //   headerTitle: "",
+        //   headerBackVisible: true,
+        //   headerStyle: {
+        //     backgroundColor: "transparent",
+        //   },
+        //   headerShadowVisible: false,
+        // }}
       />
     </Stack>
   );

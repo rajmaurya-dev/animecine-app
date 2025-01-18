@@ -35,8 +35,8 @@ export default function HomeScreen() {
             height={500}
             autoPlay={true}
             data={data?.data ?? []}
-            autoPlayInterval={5000}
-            scrollAnimationDuration={2000}
+            autoPlayInterval={1000}
+            scrollAnimationDuration={1000}
             renderItem={({ item }) => <CarouselCard item={item} />}
           />
         </View>
